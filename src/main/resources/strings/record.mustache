@@ -19,7 +19,7 @@ public class {{className}} extends org.apache.avro.specific.SpecificRecordBase i
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
     {{#fields}}
-    case {{num}}: {{name}}Field = ({{type}})value$; break;
+    case {{num}}: {{#utf8}}this.{{name}}Cache = null; {{/utf8}}{{name}}Field = ({{type}})value$; break;
     {{/fields}}
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
@@ -28,12 +28,13 @@ public class {{className}} extends org.apache.avro.specific.SpecificRecordBase i
   // My extensions for pulling Strings instead of Utf8
   {{#fields}}
   {{#utf8}}
-  public String {{name}}() { return {{name}}Field == null ? null : String.valueOf({{name}}Field); }
-  public void {{name}}(String stringValue) { {{name}}Field = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  private String {{name}}Cache;
+  public String {{name}}() { return this.{{name}}Cache == null ? (this.{{name}}Field == null ? null : (this.{{name}}Cache = String.valueOf(this.{{name}}Field))) : this.{{name}}Cache; }
+  public void {{name}}(String stringValue) { this.{{name}}Cache = stringValue; this.{{name}}Field = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
   {{/utf8}}
   {{^utf8}}
-  public {{type}} {{name}}() { return {{name}}Field; }
-  public void {{name}}({{newtype}} value) { {{name}}Field = value; }
+  public {{type}} {{name}}() { return this.{{name}}Field; }
+  public void {{name}}({{type}} value) { this.{{name}}Field = value; }
   {{/utf8}}
   {{/fields}}
 }

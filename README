@@ -1,0 +1,78 @@
+For example, this is using the 'strings' template which lets you work directly with String instead of Utf8 through methods rather than direct field accesses:
+
+package bagcheck;
+
+@SuppressWarnings("all")
+public class User extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
+  public static final org.apache.avro.Schema SCHEMA$ = org.apache.avro.Schema.parse("{\"type\":\"record\",\"name\":\"User\",\"namespace\":\"bagcheck\",\"fields\":[{\"name\":\"firstName\",\"type\":\"string\",\"default\":\"\"},{\"name\":\"lastName\",\"type\":\"string\",\"default\":\"\"},{\"name\":\"email\",\"type\":\"string\",\"default\":\"\"},{\"name\":\"birthday\",\"type\":[\"string\",\"null\"],\"default\":\"\"},{\"name\":\"gender\",\"type\":[{\"type\":\"enum\",\"name\":\"GenderType\",\"symbols\":[\"FEMALE\",\"MALE\"]},\"null\"]},{\"name\":\"image\",\"type\":\"string\",\"default\":\"\"},{\"name\":\"title\",\"type\":[\"string\",\"null\"],\"default\":\"\"},{\"name\":\"description\",\"type\":[\"string\",\"null\"],\"default\":\"\"},{\"name\":\"location\",\"type\":[\"string\",\"null\"],\"default\":\"\"},{\"name\":\"password\",\"type\":\"bytes\",\"default\":\"\"},{\"name\":\"mobile\",\"type\":[\"string\",\"null\"],\"default\":null}]}");
+  /** First name of the user */
+  private org.apache.avro.util.Utf8 firstNameField;
+  private org.apache.avro.util.Utf8 lastNameField;
+  private org.apache.avro.util.Utf8 emailField;
+  private org.apache.avro.util.Utf8 birthdayField;
+  private bagcheck.GenderType genderField;
+  private org.apache.avro.util.Utf8 imageField;
+  private org.apache.avro.util.Utf8 titleField;
+  private org.apache.avro.util.Utf8 descriptionField;
+  private org.apache.avro.util.Utf8 locationField;
+  private java.nio.ByteBuffer passwordField;
+  private org.apache.avro.util.Utf8 mobileField;
+  public org.apache.avro.Schema getSchema() { return SCHEMA$; }
+  public java.lang.Object get(int field$) {
+    switch (field$) {
+    case 0: return firstNameField;
+    case 1: return lastNameField;
+    case 2: return emailField;
+    case 3: return birthdayField;
+    case 4: return genderField;
+    case 5: return imageField;
+    case 6: return titleField;
+    case 7: return descriptionField;
+    case 8: return locationField;
+    case 9: return passwordField;
+    case 10: return mobileField;
+    default: throw new org.apache.avro.AvroRuntimeException("Bad index");
+    }
+  }
+  @SuppressWarnings(value="unchecked")
+  public void put(int field$, java.lang.Object value$) {
+    switch (field$) {
+    case 0: firstNameField = (org.apache.avro.util.Utf8)value$; break;
+    case 1: lastNameField = (org.apache.avro.util.Utf8)value$; break;
+    case 2: emailField = (org.apache.avro.util.Utf8)value$; break;
+    case 3: birthdayField = (org.apache.avro.util.Utf8)value$; break;
+    case 4: genderField = (bagcheck.GenderType)value$; break;
+    case 5: imageField = (org.apache.avro.util.Utf8)value$; break;
+    case 6: titleField = (org.apache.avro.util.Utf8)value$; break;
+    case 7: descriptionField = (org.apache.avro.util.Utf8)value$; break;
+    case 8: locationField = (org.apache.avro.util.Utf8)value$; break;
+    case 9: passwordField = (java.nio.ByteBuffer)value$; break;
+    case 10: mobileField = (org.apache.avro.util.Utf8)value$; break;
+    default: throw new org.apache.avro.AvroRuntimeException("Bad index");
+    }
+  }
+
+  // My extensions for pulling Strings instead of Utf8
+  public String firstName() { return firstNameField == null ? null : String.valueOf(this.firstNameField); }
+  public void firstName(String stringValue) { this.firstNameField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public String lastName() { return lastNameField == null ? null : String.valueOf(this.lastNameField); }
+  public void lastName(String stringValue) { this.lastNameField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public String email() { return emailField == null ? null : String.valueOf(this.emailField); }
+  public void email(String stringValue) { this.emailField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public String birthday() { return birthdayField == null ? null : String.valueOf(this.birthdayField); }
+  public void birthday(String stringValue) { this.birthdayField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public bagcheck.GenderType gender() { return this.genderField; }
+  public void gender(bagcheck.GenderType value) { this.genderField = value; }
+  public String image() { return imageField == null ? null : String.valueOf(this.imageField); }
+  public void image(String stringValue) { this.imageField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public String title() { return titleField == null ? null : String.valueOf(this.titleField); }
+  public void title(String stringValue) { this.titleField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public String description() { return descriptionField == null ? null : String.valueOf(this.descriptionField); }
+  public void description(String stringValue) { this.descriptionField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public String location() { return locationField == null ? null : String.valueOf(this.locationField); }
+  public void location(String stringValue) { this.locationField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  public java.nio.ByteBuffer password() { return this.passwordField; }
+  public void password(java.nio.ByteBuffer value) { this.passwordField = value; }
+  public String mobile() { return mobileField == null ? null : String.valueOf(this.mobileField); }
+  public void mobile(String stringValue) { this.mobileField = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+}
