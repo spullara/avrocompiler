@@ -4,7 +4,7 @@ package {{packageName}};
 public class {{className}} extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
   public static final org.apache.avro.Schema SCHEMA$ = org.apache.avro.Schema.parse("{{schemaText}}");
   {{#fields}}
-  public {{type}} {{name}};
+  {{doc}}public {{type}} {{name}};
   {{/fields}}
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   public java.lang.Object get(int field$) {

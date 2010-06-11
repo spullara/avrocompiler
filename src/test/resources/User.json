@@ -6,6 +6,7 @@
     {
       "name":"firstName",
       "type":"string",
+      "doc":"First name of the user",
       "default": ""
     },
     {

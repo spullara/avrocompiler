@@ -194,6 +194,7 @@ public class TemplatedSpecificCompiler {
             int num = field.pos();
             String type = unbox(field.schema());
             String name = mangle(field.name());
+            String doc = field.doc() == null ? null : "/** " + field.doc() + " */\n  ";
           });
         }
         scope.put("fields", fields);
