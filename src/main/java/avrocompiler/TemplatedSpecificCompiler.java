@@ -42,17 +42,21 @@ public class TemplatedSpecificCompiler {
   /* List of Java reserved words from
    * http://java.sun.com/docs/books/jls/third_edition/html/lexical.html. */
   private static final Set<String> RESERVED_WORDS = new HashSet<String>(
-      Arrays.asList(new String[] {
-          "abstract", "assert", "boolean", "break", "byte", "case", "catch",
-          "char", "class", "const", "continue", "default", "do", "double",
-          "else", "enum", "extends", "false", "final", "finally", "float",
-          "for", "goto", "if", "implements", "import", "instanceof", "int",
-          "interface", "long", "native", "new", "null", "package", "private",
-          "protected", "public", "return", "short", "static", "strictfp",
-          "super", "switch", "synchronized", "this", "throw", "throws",
-          "transient", "true", "try", "void", "volatile", "while"
-        }));
+      Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case", "catch",
+              "char", "class", "const", "continue", "default", "do", "double",
+              "else", "enum", "extends", "false", "final", "finally", "float",
+              "for", "goto", "if", "implements", "import", "instanceof", "int",
+              "interface", "long", "native", "new", "null", "package", "private",
+              "protected", "public", "return", "short", "static", "strictfp",
+              "super", "switch", "synchronized", "this", "throw", "throws",
+              "transient", "true", "try", "void", "volatile", "while"));
   public static final MustacheCompiler MC = new MustacheCompiler();
+
+  private String subdir;
+
+  public void setSubdir(String subdir) {
+    this.subdir = subdir;
+  }
 
   public TemplatedSpecificCompiler(Protocol protocol) {
     // enqueue all types
@@ -91,22 +95,32 @@ public class TemplatedSpecificCompiler {
     }
   }
 
+  public static void compileProtocol(String subdir, File src, File dest) throws IOException {
+    Protocol protocol = Protocol.parse(src);
+    TemplatedSpecificCompiler compiler = new TemplatedSpecificCompiler(protocol);
+    compiler.setSubdir(subdir);
+    compiler.compileToDestination(dest);
+  }
+
   /**
    * Generates Java interface and classes for a protocol.
    * @param src the source Avro protocol file
    * @param dest the directory to place generated files in
    */
   public static void compileProtocol(File src, File dest) throws IOException {
-    Protocol protocol = Protocol.parse(src);
-    TemplatedSpecificCompiler compiler = new TemplatedSpecificCompiler(protocol);
+    compileProtocol(null, src, dest);
+  }
+
+  public static void compileSchema(String subdir, File src, File dest) throws IOException {
+    Schema schema = Schema.parse(src);
+    TemplatedSpecificCompiler compiler = new TemplatedSpecificCompiler(schema);
+    compiler.setSubdir(subdir);
     compiler.compileToDestination(dest);
   }
 
   /** Generates Java classes for a schema. */
   public static void compileSchema(File src, File dest) throws IOException {
-    Schema schema = Schema.parse(src);
-    TemplatedSpecificCompiler compiler = new TemplatedSpecificCompiler(schema);
-    compiler.compileToDestination(dest);
+    compileSchema(null, src, dest);
   }
 
   static String mangle(String word) {
@@ -195,6 +209,7 @@ public class TemplatedSpecificCompiler {
             String type = unbox(field.schema());
             String name = mangle(field.name());
             String doc = field.doc() == null ? null : "/** " + field.doc() + " */\n  ";
+            boolean utf8 = type.equals("org.apache.avro.util.Utf8");
           });
         }
         scope.put("fields", fields);
@@ -244,6 +259,9 @@ public class TemplatedSpecificCompiler {
   }
 
   private Mustache createMustache(String template) throws MustacheException {
+    if (subdir != null) {
+      template = "/" + subdir + template;
+    }
     return MC.compile(new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(template))),
             new Stack<String>(), new AtomicInteger(0), getClass().getClassLoader());
   }

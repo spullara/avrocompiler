@@ -1,0 +1,39 @@
+package {{packageName}};
+
+@SuppressWarnings("all")
+public class {{className}} extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
+  public static final org.apache.avro.Schema SCHEMA$ = org.apache.avro.Schema.parse("{{schemaText}}");
+  {{#fields}}
+  {{doc}}private {{type}} {{name}}Field;
+  {{/fields}}
+  public org.apache.avro.Schema getSchema() { return SCHEMA$; }
+  public java.lang.Object get(int field$) {
+    switch (field$) {
+    {{#fields}}
+    case {{num}}: return {{name}}Field;
+    {{/fields}}
+    default: throw new org.apache.avro.AvroRuntimeException("Bad index");
+    }
+  }
+  @SuppressWarnings(value="unchecked")
+  public void put(int field$, java.lang.Object value$) {
+    switch (field$) {
+    {{#fields}}
+    case {{num}}: {{name}}Field = ({{type}})value$; break;
+    {{/fields}}
+    default: throw new org.apache.avro.AvroRuntimeException("Bad index");
+    }
+  }
+
+  // My extensions for pulling Strings instead of Utf8
+  {{#fields}}
+  {{#utf8}}
+  public String {{name}}() { return {{name}}Field == null ? null : String.valueOf({{name}}Field); }
+  public void {{name}}(String stringValue) { {{name}}Field = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
+  {{/utf8}}
+  {{^utf8}}
+  public {{type}} {{name}}() { return {{name}}Field; }
+  public void {{name}}({{newtype}} value) { {{name}}Field = value; }
+  {{/utf8}}
+  {{/fields}}
+}

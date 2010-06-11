@@ -9,7 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringWriter;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Generate with the old and the new.
@@ -28,6 +28,18 @@ public class ComparisonTest {
     TemplatedSpecificCompiler.compileSchema(new File(getClass().getResource("/User.json").getFile()), newdest);
     String recordName = "bagcheck/User.java";
     assertEquals(readFile(new File(olddest, recordName)), readFile(new File(newdest, recordName)));
+    String enumName = "bagcheck/GenderType.java";
+    assertEquals(readFile(new File(olddest, enumName)), readFile(new File(newdest, enumName)));
+  }
+
+  @Test
+  public void testCompilerVariant() throws IOException {
+    File olddest = new File("target/oldavro");
+    OldSpecificCompiler.compileSchema(new File(getClass().getResource("/User.json").getFile()), olddest);
+    File newdest = new File("target/avro");
+    TemplatedSpecificCompiler.compileSchema("strings", new File(getClass().getResource("/User.json").getFile()), newdest);
+    String recordName = "bagcheck/User.java";
+    assertNotSame(readFile(new File(olddest, recordName)), readFile(new File(newdest, recordName)));
     String enumName = "bagcheck/GenderType.java";
     assertEquals(readFile(new File(olddest, enumName)), readFile(new File(newdest, enumName)));
   }
