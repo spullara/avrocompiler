@@ -207,6 +207,7 @@ public class TemplatedSpecificCompiler {
           fields.add(new Object() {
             int num = field.pos();
             String type = unbox(field.schema());
+            String boxedType = type(field.schema());
             String name = mangle(field.name());
             String doc = field.doc() == null ? null : "/** " + field.doc() + " */\n  ";
             boolean utf8 = type.equals("org.apache.avro.util.Utf8");

@@ -4,7 +4,7 @@ package {{packageName}};
 public class {{className}} extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
   public static final org.apache.avro.Schema SCHEMA$ = org.apache.avro.Schema.parse("{{schemaText}}");
   {{#fields}}
-  {{doc}}private {{type}} {{name}}Field;
+  {{doc}}private {{{type}}} {{name}}Field;
   {{/fields}}
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   public java.lang.Object get(int field$) {
@@ -19,7 +19,7 @@ public class {{className}} extends org.apache.avro.specific.SpecificRecordBase i
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
     {{#fields}}
-    case {{num}}: {{#utf8}}this.{{name}}Cache = null; {{/utf8}}{{name}}Field = ({{type}})value$; break;
+    case {{num}}: {{#utf8}}this.{{name}}Cache = null; {{/utf8}}{{name}}Field = ({{{boxedType}}})value$; break;
     {{/fields}}
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
@@ -33,8 +33,8 @@ public class {{className}} extends org.apache.avro.specific.SpecificRecordBase i
   public void {{name}}(String stringValue) { this.{{name}}Cache = stringValue; this.{{name}}Field = stringValue == null ? null : new org.apache.avro.util.Utf8(stringValue); }
   {{/utf8}}
   {{^utf8}}
-  public {{type}} {{name}}() { return this.{{name}}Field; }
-  public void {{name}}({{type}} value) { this.{{name}}Field = value; }
+  public {{{type}}} {{name}}() { return this.{{name}}Field; }
+  public void {{name}}({{{type}}} value) { this.{{name}}Field = value; }
   {{/utf8}}
   {{/fields}}
 }
