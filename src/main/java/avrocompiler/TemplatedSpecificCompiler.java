@@ -8,7 +8,6 @@ import com.sampullara.util.FutureWriter;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.tool.Tool;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,14 +42,14 @@ public class TemplatedSpecificCompiler {
   /* List of Java reserved words from
    * http://java.sun.com/docs/books/jls/third_edition/html/lexical.html. */
   private static final Set<String> RESERVED_WORDS = new HashSet<String>(
-      Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case", "catch",
-              "char", "class", "const", "continue", "default", "do", "double",
-              "else", "enum", "extends", "false", "final", "finally", "float",
-              "for", "goto", "if", "implements", "import", "instanceof", "int",
-              "interface", "long", "native", "new", "null", "package", "private",
-              "protected", "public", "return", "short", "static", "strictfp",
-              "super", "switch", "synchronized", "this", "throw", "throws",
-              "transient", "true", "try", "void", "volatile", "while"));
+          Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case", "catch",
+                  "char", "class", "const", "continue", "default", "do", "double",
+                  "else", "enum", "extends", "false", "final", "finally", "float",
+                  "for", "goto", "if", "implements", "import", "instanceof", "int",
+                  "interface", "long", "native", "new", "null", "package", "private",
+                  "protected", "public", "return", "short", "static", "strictfp",
+                  "super", "switch", "synchronized", "this", "throw", "throws",
+                  "transient", "true", "try", "void", "volatile", "while"));
   public static final MustacheCompiler MC = new MustacheCompiler();
 
   private String subdir;
@@ -70,7 +70,7 @@ public class TemplatedSpecificCompiler {
     enqueue(schema);
     this.protocol = null;
   }
-  
+
   /**
    * Captures output file path and contents.
    */
@@ -104,7 +104,8 @@ public class TemplatedSpecificCompiler {
 
   /**
    * Generates Java interface and classes for a protocol.
-   * @param src the source Avro protocol file
+   *
+   * @param src  the source Avro protocol file
    * @param dest the directory to place generated files in
    */
   public static void compileProtocol(File src, File dest) throws IOException {
@@ -118,7 +119,9 @@ public class TemplatedSpecificCompiler {
     compiler.compileToDestination(dest);
   }
 
-  /** Generates Java classes for a schema. */
+  /**
+   * Generates Java classes for a schema.
+   */
   public static void compileSchema(File src, File dest) throws IOException {
     compileSchema(null, src, dest);
   }
@@ -130,39 +133,48 @@ public class TemplatedSpecificCompiler {
     return word;
   }
 
-  /** Recursively enqueue schemas that need a class generated. */
+  /**
+   * Recursively enqueue schemas that need a class generated.
+   */
   private void enqueue(Schema schema) {
     if (queue.contains(schema)) return;
     switch (schema.getType()) {
-    case RECORD:
-      queue.add(schema);
-      for (Schema.Field field : schema.getFields())
-        enqueue(field.schema());
-      break;
-    case MAP:
-      enqueue(schema.getValueType());
-      break;
-    case ARRAY:
-      enqueue(schema.getElementType());
-      break;
-    case UNION:
-      for (Schema s : schema.getTypes())
-        enqueue(s);
-      break;
-    case ENUM:
-    case FIXED:
-      queue.add(schema);
-      break;
-    case STRING: case BYTES:
-    case INT: case LONG:
-    case FLOAT: case DOUBLE:
-    case BOOLEAN: case NULL:
-      break;
-    default: throw new RuntimeException("Unknown type: "+schema);
+      case RECORD:
+        queue.add(schema);
+        for (Schema.Field field : schema.getFields())
+          enqueue(field.schema());
+        break;
+      case MAP:
+        enqueue(schema.getValueType());
+        break;
+      case ARRAY:
+        enqueue(schema.getElementType());
+        break;
+      case UNION:
+        for (Schema s : schema.getTypes())
+          enqueue(s);
+        break;
+      case ENUM:
+      case FIXED:
+        queue.add(schema);
+        break;
+      case STRING:
+      case BYTES:
+      case INT:
+      case LONG:
+      case FLOAT:
+      case DOUBLE:
+      case BOOLEAN:
+      case NULL:
+        break;
+      default:
+        throw new RuntimeException("Unknown type: " + schema);
     }
   }
 
-  /** Generate java classes for enqueued schemas. */
+  /**
+   * Generate java classes for enqueued schemas.
+   */
   Collection<OutputFile> compile() {
     List<OutputFile> out = new ArrayList<OutputFile>();
     for (Schema schema : queue) {
@@ -175,7 +187,67 @@ public class TemplatedSpecificCompiler {
   }
 
   private OutputFile compileInterface(Protocol protocol) {
-    throw new NotImplementedException();
+    OutputFile outputFile = new OutputFile();
+    String mangledName = mangle(protocol.getName());
+    outputFile.path = makePath(mangledName, protocol.getNamespace());
+    StringWriter out = new StringWriter();
+    try {
+      Mustache mustache = createMustache("/protocol.mustache");
+      Scope scope = new Scope();
+      scope.put("doc", protocol.getDoc());
+      scope.put("className", mangledName);
+      scope.put("packageName", protocol.getNamespace());
+      scope.put("protocolText", protocol.toString().replace("\"", "\\\""));
+      List messages = new ArrayList();
+      for (Map.Entry<String, Protocol.Message> e : protocol.getMessages().entrySet()) {
+        final String messageName = e.getKey();
+        final Protocol.Message message = e.getValue();
+        final Schema request = message.getRequest();
+        final Schema response = message.getResponse();
+        messages.add(new Object() {
+          String name = mangle(messageName);
+          String doc = message.getDoc();
+          List params() {
+            List params = new ArrayList();
+            int i = 0;
+            int j = request.getFields().size();
+            for (final Schema.Field param : request.getFields()) {
+              final boolean last = ++i == j;
+              params.add(new Object() {
+                String paramName = mangle(param.name());
+                String paramType = unbox(param.schema());
+                boolean lastParam = last;
+              });
+            }
+            return params;
+          }
+          String responseType = unbox(response);
+          List errors() {
+            List errors = new ArrayList();
+            List<Schema> errorTypes = message.getErrors().getTypes();
+            for (Schema error : errorTypes.subList(1, errorTypes.size())) {
+              errors.add(mangle(error.getFullName()));
+            }
+            return errors;
+          }
+        });
+      }
+      scope.put("messages", messages);
+      execute(out, mustache, scope);
+      outputFile.contents = out.toString();
+      return outputFile;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+//    for (Map.Entry<String, Protocol.Message> e : protocol.getMessages().entrySet()) {
+//      String name = e.getKey();
+//      Protocol.Message message = e.getValue();
+//      Schema request = message.getRequest();
+//      Schema response = message.getResponse();
+//      doc(out, 1, e.getValue().getDoc());
+//      line(out, 1, unbox(response)+" "+ mangle(name)+"("+params(request)+")");
+//      line(out, 2,"throws org.apache.avro.ipc.AvroRemoteException"+errors(message.getErrors())+";");
+//    }
   }
 
   private void compileToDestination(File dst) throws IOException {
@@ -194,59 +266,69 @@ public class TemplatedSpecificCompiler {
     outputFile.path = makePath(name, schema.getNamespace());
     StringWriter out = new StringWriter();
     switch (schema.getType()) {
-    case RECORD:
-      try {
-        Mustache mustache = createMustache("/record.mustache");
-        Scope scope = new Scope();
-        scope.put("className", name);
-        scope.put("packageName", schema.getNamespace());
-        scope.put("schemaText", schema.toString().replace("\"", "\\\""));
-        List<Schema.Field> fieldList = schema.getFields();
-        List fields = new ArrayList(fieldList.size());
-        for (final Schema.Field field : fieldList) {
-          fields.add(new Object() {
-            int num = field.pos();
-            String type = unbox(field.schema());
-            String boxedType = type(field.schema());
-            String name = mangle(field.name());
-            String doc = field.doc() == null ? null : "/** " + field.doc() + " */\n  ";
-            boolean utf8 = type.equals("org.apache.avro.util.Utf8");
-          });
+      case RECORD:
+        try {
+          Mustache mustache = createMustache("/record.mustache");
+          Scope scope = new Scope();
+          scope.put("className", name);
+          scope.put("packageName", schema.getNamespace());
+          scope.put("schemaText", schema.toString().replace("\"", "\\\""));
+          List<Schema.Field> fieldList = schema.getFields();
+          List fields = new ArrayList(fieldList.size());
+          for (final Schema.Field field : fieldList) {
+            fields.add(new Object() {
+              int num = field.pos();
+              String type = unbox(field.schema());
+              String boxedType = type(field.schema());
+              String name = mangle(field.name());
+              String doc = field.doc() == null ? null : "/** " + field.doc() + " */\n  ";
+              boolean utf8 = type.equals("org.apache.avro.util.Utf8");
+            });
+          }
+          scope.put("fields", fields);
+          execute(out, mustache, scope);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
         }
-        scope.put("fields", fields);
-        execute(out, mustache, scope);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      break;
-    case ENUM:
-      try {
-        Mustache mustache = createMustache("/enum.mustache");
-        Scope scope = new Scope();
-        scope.put("enumName", name);
-        scope.put("packageName", schema.getNamespace());
-        final List<String> fieldList = schema.getEnumSymbols();
-        List values = new ArrayList(fieldList.size());
-        int i = 0;
-        for (final String value : fieldList) {
-          final boolean isLast = (++i == fieldList.size());
-          values.add(new Object() {
-            String name = mangle(value);
-            boolean last = isLast;
-          });
+        break;
+      case ENUM:
+        try {
+          Mustache mustache = createMustache("/enum.mustache");
+          Scope scope = new Scope();
+          scope.put("enumName", name);
+          scope.put("packageName", schema.getNamespace());
+          final List<String> fieldList = schema.getEnumSymbols();
+          List values = new ArrayList(fieldList.size());
+          int i = 0;
+          for (final String value : fieldList) {
+            final boolean isLast = (++i == fieldList.size());
+            values.add(new Object() {
+              String name = mangle(value);
+              boolean last = isLast;
+            });
+          }
+          scope.put("values", values);
+          execute(out, mustache, scope);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
         }
-        scope.put("values", values);
-        execute(out, mustache, scope);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      break;
-    case FIXED:
-      break;
-    case MAP: case ARRAY: case UNION: case STRING: case BYTES:
-    case INT: case LONG: case FLOAT: case DOUBLE: case BOOLEAN: case NULL:
-      break;
-    default: throw new RuntimeException("Unknown type: "+schema);
+        break;
+      case FIXED:
+        break;
+      case MAP:
+      case ARRAY:
+      case UNION:
+      case STRING:
+      case BYTES:
+      case INT:
+      case LONG:
+      case FLOAT:
+      case DOUBLE:
+      case BOOLEAN:
+      case NULL:
+        break;
+      default:
+        throw new RuntimeException("Unknown type: " + schema);
     }
 
     outputFile.contents = out.toString();
@@ -269,12 +351,18 @@ public class TemplatedSpecificCompiler {
 
   private String unbox(Schema schema) {
     switch (schema.getType()) {
-    case INT:     return "int";
-    case LONG:    return "long";
-    case FLOAT:   return "float";
-    case DOUBLE:  return "double";
-    case BOOLEAN: return "boolean";
-    default:      return type(schema);
+      case INT:
+        return "int";
+      case LONG:
+        return "long";
+      case FLOAT:
+        return "float";
+      case DOUBLE:
+        return "double";
+      case BOOLEAN:
+        return "boolean";
+      default:
+        return type(schema);
     }
   }
 
@@ -283,34 +371,43 @@ public class TemplatedSpecificCompiler {
       return name + ".java";
     } else {
       return space.replace('.', File.separatorChar) + File.separatorChar
-        + name + ".java";
+              + name + ".java";
     }
   }
 
   private String type(Schema schema) {
     switch (schema.getType()) {
-    case RECORD:
-    case ENUM:
-    case FIXED:
-      return mangle(schema.getFullName());
-    case ARRAY:
-      return "org.apache.avro.generic.GenericArray<"+type(schema.getElementType())+">";
-    case MAP:
-      return "java.util.Map<org.apache.avro.util.Utf8,"+type(schema.getValueType())+">";
-    case UNION:
-      List<Schema> types = schema.getTypes();     // elide unions with null
-      if ((types.size() == 2) && types.contains(NULL_SCHEMA))
-        return type(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0));
-      return "java.lang.Object";
-    case STRING:  return "org.apache.avro.util.Utf8";
-    case BYTES:   return "java.nio.ByteBuffer";
-    case INT:     return "java.lang.Integer";
-    case LONG:    return "java.lang.Long";
-    case FLOAT:   return "java.lang.Float";
-    case DOUBLE:  return "java.lang.Double";
-    case BOOLEAN: return "java.lang.Boolean";
-    case NULL:    return "java.lang.Void";
-    default: throw new RuntimeException("Unknown type: "+schema);
+      case RECORD:
+      case ENUM:
+      case FIXED:
+        return mangle(schema.getFullName());
+      case ARRAY:
+        return "org.apache.avro.generic.GenericArray<" + type(schema.getElementType()) + ">";
+      case MAP:
+        return "java.util.Map<org.apache.avro.util.Utf8," + type(schema.getValueType()) + ">";
+      case UNION:
+        List<Schema> types = schema.getTypes();     // elide unions with null
+        if ((types.size() == 2) && types.contains(NULL_SCHEMA))
+          return type(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0));
+        return "java.lang.Object";
+      case STRING:
+        return "org.apache.avro.util.Utf8";
+      case BYTES:
+        return "java.nio.ByteBuffer";
+      case INT:
+        return "java.lang.Integer";
+      case LONG:
+        return "java.lang.Long";
+      case FLOAT:
+        return "java.lang.Float";
+      case DOUBLE:
+        return "java.lang.Double";
+      case BOOLEAN:
+        return "java.lang.Boolean";
+      case NULL:
+        return "java.lang.Void";
+      default:
+        throw new RuntimeException("Unknown type: " + schema);
     }
   }
 
@@ -322,7 +419,7 @@ public class TemplatedSpecificCompiler {
   public static class SpecificCompilerTool implements Tool {
     @Override
     public int run(InputStream in, PrintStream out, PrintStream err,
-        List<String> args) throws Exception {
+                   List<String> args) throws Exception {
       if (args.size() != 3) {
         System.err.println("Expected 3 arguments: (schema|protocol) inputfile outputdir");
         return 1;
@@ -351,5 +448,5 @@ public class TemplatedSpecificCompiler {
       return "Generates Java code for the given schema.";
     }
   }
-  
+
 }

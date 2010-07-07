@@ -44,6 +44,16 @@ public class ComparisonTest {
     assertEquals(readFile(new File(olddest, enumName)), readFile(new File(newdest, enumName)));
   }
 
+  @Test
+  public void testProtocol() throws IOException {
+    File olddest = new File("target/oldavro");
+    OldSpecificCompiler.compileProtocol(new File(getClass().getResource("/ProtocolTest.json").getFile()), olddest);
+    File newdest = new File("target/avro");
+    TemplatedSpecificCompiler.compileProtocol(new File(getClass().getResource("/ProtocolTest.json").getFile()), newdest);
+    String recordName = "avrocompiler/test/API.java";
+    assertEquals(readFile(new File(olddest, recordName)), readFile(new File(newdest, recordName)));
+  }
+
   private static String readFile(File file) throws IOException {
     BufferedReader br = new BufferedReader(new FileReader(file));
     StringWriter sw = new StringWriter();

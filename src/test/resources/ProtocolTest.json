@@ -1,0 +1,42 @@
+{
+  "namespace": "avrocompiler.test",
+  "protocol": "API",
+  "doc": "Protocol Greetings",
+
+  "types":[
+    {
+      "name":"TestType",
+      "type":"record",
+      "fields":[
+        {
+          "name":"testfield",
+          "type":"string"
+        }
+      ]
+    },
+    {
+      "name": "Curse",
+      "type": "error",
+      "fields": [
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "messages":{
+    "hello": {
+      "doc": "Say hello.",
+      "request": [
+        {
+          "name": "greeting",
+          "type": "TestType"
+        }
+      ],
+      "response": "string",
+      "errors": ["Curse"]
+    }
+  }
+
+}

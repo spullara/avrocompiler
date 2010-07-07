@@ -1,0 +1,12 @@
+package {{packageName}};
+
+@SuppressWarnings("all")
+  {{#doc}}/** {{doc}} */{{/doc}}
+public interface {{className}} {
+  public static final org.apache.avro.Protocol PROTOCOL = org.apache.avro.Protocol.parse("{{protocolText}}");
+  {{#messages}}
+  {{#doc}}/** {{doc}} */{{/doc}}
+  {{responseType}} {{name}}({{#params}}{{paramType}} {{paramName}}{{^lastParam}}, {{/lastParam}}{{/params}})
+    throws org.apache.avro.ipc.AvroRemoteException{{#errors}}, {{errors}}{{/errors}};
+  {{/messages}}
+}
