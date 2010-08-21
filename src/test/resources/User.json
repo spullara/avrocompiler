@@ -57,6 +57,11 @@
       "name":"mobile",
       "type":["string", "null"],
       "default": null
+    },
+    {
+      "name":"test",
+      "type":"boolean",
+      "default":true
     }
   ]
 }

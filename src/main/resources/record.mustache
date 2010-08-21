@@ -19,7 +19,7 @@ public class {{className}} extends org.apache.avro.specific.SpecificRecordBase i
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
     {{#fields}}
-    case {{num}}: {{name}} = ({{type}})value$; break;
+    case {{num}}: {{name}} = ({{boxedType}})value$; break;
     {{/fields}}
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
