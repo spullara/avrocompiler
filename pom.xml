@@ -61,9 +61,9 @@
 
     <!-- Mustache -->
     <dependency>
-      <groupId>mustache.java</groupId>
+      <groupId>com.github.spullara.mustache.java</groupId>
       <artifactId>compiler</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.3-SNAPSHOT</version>
     </dependency>
 
     <!-- Testing -->
