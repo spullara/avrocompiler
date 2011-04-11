@@ -15,14 +15,6 @@
   </properties>
 
   <repositories>
-    <repository>
-      <id>javarants releases</id>
-      <url>http://www.javarants.com/repository/</url>
-    </repository>
-    <repository>
-      <id>javarants snapshots</id>
-      <url>http://www.javarants.com/snapshots/</url>
-    </repository>
   </repositories>
 
   <distributionManagement>
@@ -30,14 +22,6 @@
       <id>www.javarants.com</id>
       <url>scp://www.javarants.com/opt/sites/javarants/sites/</url>
     </site>
-    <repository>
-      <id>www.javarants.com</id>
-      <url>scp://www.javarants.com/opt/sites/javarants/repository/</url>
-    </repository>
-    <snapshotRepository>
-      <id>www.javarants.com</id>
-      <url>scp://www.javarants.com/opt/sites/javarants/snapshots/</url>
-    </snapshotRepository>
   </distributionManagement>
 
   <dependencies>

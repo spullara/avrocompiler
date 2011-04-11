@@ -297,6 +297,7 @@ public class TemplatedSpecificCompiler {
           Scope scope = new Scope();
           scope.put("enumName", name);
           scope.put("packageName", schema.getNamespace());
+          scope.put("schemaText", schema.toString().replace("\"", "\\\""));
           final List<String> fieldList = schema.getEnumSymbols();
           List values = new ArrayList(fieldList.size());
           int i = 0;

@@ -2,5 +2,6 @@ package {{packageName}};
 
 @SuppressWarnings("all")
 public enum {{enumName}} { 
-  {{#values}}{{name}}{{^last}}, {{/last}}{{/values}}
+  {{#values}}{{name}}{{^last}}, {{/last}}{{/values}};
+  public static final org.apache.avro.Schema SCHEMA$ = org.apache.avro.Schema.parse("{{schemaText}}");
 }
