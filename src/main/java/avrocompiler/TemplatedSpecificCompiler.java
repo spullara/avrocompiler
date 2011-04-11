@@ -51,7 +51,9 @@ public class TemplatedSpecificCompiler {
                   "super", "switch", "synchronized", "this", "throw", "throws",
                   "transient", "true", "try", "void", "volatile", "while"));
   public static final MustacheCompiler MC = new MustacheCompiler();
-
+  static {
+    MC.setSuperclass("avrocompiler.NoEncodingMustache");
+  }
   private String subdir;
 
   public void setSubdir(String subdir) {
